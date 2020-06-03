@@ -68,11 +68,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
             bool leftEyeOpen = (face.leftEyeOpenProbability * 100).round() > 50;
             String emoji = 'neutral_face';
             if (smiling) {
-              if (rightEyeOpen && leftEyeOpen) {
-                emoji = 'smiley';
-              } else {
-                emoji = 'smile';
-              }
+              emoji = (rightEyeOpen && leftEyeOpen) ? 'smiley': 'smile';
             } else if (rightEyeOpen && !leftEyeOpen) {
               emoji = 'wink';
               rotation = 0;
