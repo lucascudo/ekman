@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
+import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
 import 'package:lightman/components/rounded_button_icon.dart';
 import 'package:lightman/models/ImageModel.dart';
+import 'package:lightman/scanner_utils.dart';
 import 'package:lightman/screens/face_detection_screen.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:path/path.dart' show join;
@@ -24,8 +26,9 @@ class PhotoPickerScreen extends StatefulWidget {
 }
 
 class PhotoPickerScreenState extends State<PhotoPickerScreen> {
+  bool _isDetecting = false;
   int _cameraIndex = 0;
-  CameraController _controller;
+  CameraController _cameraController;
   Future<void> _initializeControllerFuture;
 
   @override
@@ -35,10 +38,10 @@ class PhotoPickerScreenState extends State<PhotoPickerScreen> {
     setCamera();
   }
 
-  void setCamera() {
+  void setCamera() async {
     // To display the current output from the Camera,
     // create a CameraController.
-    _controller = CameraController(
+    _cameraController = CameraController(
       // Get a specific camera from the list of available cameras.
       widget.cameras[_cameraIndex],
       // Define the resolution to use.
@@ -46,13 +49,52 @@ class PhotoPickerScreenState extends State<PhotoPickerScreen> {
     );
 
     // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
+    _initializeControllerFuture = _cameraController.initialize();
+    await _initializeControllerFuture;
+    _cameraController.startImageStream((CameraImage image) async {
+      if (_isDetecting) return;
+
+      _isDetecting = true;
+      FirebaseVisionImage visionImage = FirebaseVisionImage.fromBytes(
+        ScannerUtils.concatenatePlanes(image.planes),
+        ScannerUtils.buildMetaData(
+          image,
+          ScannerUtils.rotationIntToImageRotation(
+              widget.cameras[_cameraIndex].sensorOrientation),
+        ),
+      );
+      final FaceDetectorOptions faceDetectorOptions = FaceDetectorOptions(
+        mode: FaceDetectorMode.accurate,
+        enableClassification: true,
+        enableTracking: true,
+      );
+      final FaceDetector faceDetector =
+          FirebaseVision.instance.faceDetector(faceDetectorOptions);
+      final List<Face> faces = await faceDetector.processImage(visionImage);
+      faceDetector.close();
+      if (faces.length == 0) {
+        print('No faces were detected');
+      } else {
+        for (Face face in faces) {
+          bool smiling =
+              (face.smilingProbability * 100).round() > MINIMAL_PERCENT;
+          bool rightEyeOpen =
+              (face.rightEyeOpenProbability * 100).round() > MINIMAL_PERCENT;
+          bool leftEyeOpen =
+              (face.leftEyeOpenProbability * 100).round() > MINIMAL_PERCENT;
+          print('Tracking id: ${face.trackingId}');
+          print('Smiling: $smiling');
+          print('Left eye open: $leftEyeOpen');
+          print('Right eye open: $rightEyeOpen');
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
     // Dispose of the controller when the widget is disposed.
-    _controller.dispose();
+    _cameraController.dispose();
     super.dispose();
   }
 
@@ -95,7 +137,7 @@ class PhotoPickerScreenState extends State<PhotoPickerScreen> {
                     Container(
                       child: RotatedBox(
                         quarterTurns: turns,
-                        child: CameraPreview(_controller),
+                        child: CameraPreview(_cameraController),
                       ),
                     ),
                     Container(
@@ -103,7 +145,10 @@ class PhotoPickerScreenState extends State<PhotoPickerScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           RoundedButtonIcon(
-                            icon: Icons.switch_camera,
+                            icon: (widget.cameras[_cameraIndex].lensDirection ==
+                                    CameraLensDirection.back)
+                                ? Icons.camera_front
+                                : Icons.camera_rear,
                             width: 48,
                             height: 48,
                             onTap: () {
@@ -142,7 +187,7 @@ class PhotoPickerScreenState extends State<PhotoPickerScreen> {
                                 );
 
                                 // Attempt to take a picture and log where it's been saved.
-                                await _controller.takePicture(path);
+                                await _cameraController.takePicture(path);
 
                                 // If the picture was taken, display it on a new screen.
                                 Navigator.pushNamed(
