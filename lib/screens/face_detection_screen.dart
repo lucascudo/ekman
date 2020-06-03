@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_emoji/flutter_emoji.dart';
 import 'package:lightman/models/ImageModel.dart';
 
+const int MINIMAL_PERCENT = 70;
+
 class FaceDetectionScreen extends StatefulWidget {
   static String id = '/face-detection';
 
@@ -37,6 +39,7 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
       final FirebaseVisionImage visionImage =
           FirebaseVisionImage.fromFile(imageFile);
       final FaceDetectorOptions faceDetectorOptions = FaceDetectorOptions(
+        mode: FaceDetectorMode.accurate,
         enableClassification: true,
         enableTracking: true,
       );
@@ -62,10 +65,12 @@ class _FaceDetectionScreenState extends State<FaceDetectionScreen> {
           _faceWidgets = [];
           for (Face face in faces) {
             double rotation = pi;
-            bool smiling = (face.smilingProbability * 100).round() > 50;
+            bool smiling =
+                (face.smilingProbability * 100).round() > MINIMAL_PERCENT;
             bool rightEyeOpen =
-                (face.rightEyeOpenProbability * 100).round() > 50;
-            bool leftEyeOpen = (face.leftEyeOpenProbability * 100).round() > 50;
+                (face.rightEyeOpenProbability * 100).round() > MINIMAL_PERCENT;
+            bool leftEyeOpen =
+                (face.leftEyeOpenProbability * 100).round() > MINIMAL_PERCENT;
             String emoji = 'neutral_face';
             if (smiling) {
               if (rightEyeOpen && leftEyeOpen) {
