@@ -1,4 +1,4 @@
-package co.appbrewery.lightman;
+package co.appbrewery.ekman;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

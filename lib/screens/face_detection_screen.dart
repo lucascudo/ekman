@@ -5,7 +5,7 @@ import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_emoji/flutter_emoji.dart';
-import 'package:lightman/models/ImageModel.dart';
+import 'package:ekman/models/ImageModel.dart';
 
 const int MINIMAL_PERCENT = 70;
 
