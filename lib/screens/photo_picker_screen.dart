@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:camera/camera.dart';
+import 'package:ekman/components/rounded_button_icon.dart';
+import 'package:ekman/models/ImageModel.dart';
+import 'package:ekman/scanner_utils.dart';
+import 'package:ekman/screens/face_detection_screen.dart';
 import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/material.dart';
-import 'package:lightman/components/rounded_button_icon.dart';
-import 'package:lightman/models/ImageModel.dart';
-import 'package:lightman/scanner_utils.dart';
-import 'package:lightman/screens/face_detection_screen.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';

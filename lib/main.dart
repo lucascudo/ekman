@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:lightman/screens/face_detection_screen.dart';
-import 'package:lightman/screens/photo_picker_screen.dart';
+import 'package:ekman/screens/face_detection_screen.dart';
+import 'package:ekman/screens/photo_picker_screen.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
